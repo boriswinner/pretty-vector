@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 
 
 namespace pretty_vector {
@@ -6,9 +7,10 @@ namespace pretty_vector {
 
     template<class T, class Allocator = std::allocator<T>>
     class Vector {
+    public:
         using data_type = T;
         using allocator_type = Allocator;
-        using size_type = int;
+        using size_type = unsigned int;
         using difference_type = unsigned int;
         using reference = T &;
         using const_reference = const T &;
@@ -18,17 +20,17 @@ namespace pretty_vector {
         template<typename V>
         class MyVectorIterator : public std::iterator<std::random_access_iterator_tag, V, int> {
 
-        public:
-            Vector *c;
-            unsigned int i;
-
-            MyVectorIterator(Vector *c) : c(c), i(0) {}
-            MyVectorIterator(Vector *c, unsigned int i) : c(c), i(i) {}
-
-        public:
+        protected:
+            pointer c;
+            size_type i;
             typedef typename std::iterator<std::random_access_iterator_tag, V, int>::pointer pointer;
             typedef typename std::iterator<std::random_access_iterator_tag, V, int>::reference reference;
             typedef typename std::iterator<std::random_access_iterator_tag, V, int>::difference_type difference_type;
+
+        public:
+            MyVectorIterator(pointer c) : c(c), i(0) {}
+
+            MyVectorIterator(pointer c, size_type i) : c(c), i(i) {}
 
             template<typename V2>
             MyVectorIterator(const MyVectorIterator<V2> &other) : c(other.c), i(other.i) {}
@@ -41,11 +43,11 @@ namespace pretty_vector {
             }
 
             reference operator*() const {
-                return (*c)[i];
+                return (c)[i];
             }
 
             pointer operator->() const {
-                return &(*c)[i];
+                return &(c)[i];
             }
 
             MyVectorIterator &operator++() {
@@ -85,7 +87,7 @@ namespace pretty_vector {
             }
 
             reference operator[](const difference_type &n) const {
-                return (*c)[i + n];
+                return (c)[i + n];
             }
 
             bool operator==(const MyVectorIterator &other) const {
@@ -121,7 +123,7 @@ namespace pretty_vector {
             }
         };
 
-        typedef MyVectorIterator<data_type > iterator;
+        typedef MyVectorIterator<data_type> iterator;
         typedef MyVectorIterator<const data_type> const_iterator;
 
     public:
@@ -139,7 +141,7 @@ namespace pretty_vector {
         }
 
         reference at(size_type pos) {
-            if (pos >= 0 && pos <= size_) {
+            if (pos >= 0 && pos < size_) {
                 return data_[pos];
             } else {
                 throw std::out_of_range("Index out of vector range");
@@ -147,7 +149,7 @@ namespace pretty_vector {
         }
 
         const_reference at(size_type pos) const {
-            return data_[pos];
+            return at(pos);
         }
 
         reference operator[](size_type pos) {
@@ -183,15 +185,72 @@ namespace pretty_vector {
         }
 
         iterator begin() {
-            return iterator(data_, size_);
+            return iterator(data_);
         }
 
         const_iterator begin() const {
-            return const_iterator(data_, size_);
+            return const_iterator(data_);
         }
 
         const_iterator cbegin() const {
-            return const_iterator(data_, size_);
+            return const_iterator(data_);
+        }
+
+        iterator end() {
+            return iterator(data_, size_ - 1);
+        }
+
+        const_iterator end() const {
+            return const_iterator(data_, size_ - 1);
+        }
+
+        const_iterator cend() const {
+            return const_iterator(data_, size_ - 1);
+        }
+
+        bool empty() const {
+            return (size_ == 0);
+        }
+
+        size_type size() const {
+            return size_;
+        }
+
+        size_type max_size() const {
+            return std::numeric_limits<size_type>::max();
+        }
+
+        void reserve(size_type size) {
+            //actually, size means capacity here, but the standart header is like that
+            if (size <= capacity_) {
+                return;
+            } else if (size > max_size()) {
+                throw std::length_error("Out of memory!");
+            } else {
+                Allocator tallocator;
+                auto new_data = tallocator.allocate(size);
+                move_data_to_pointer(new_data);
+                allocator_.deallocate(data_, capacity_); //maybe I should do here like Setyozha - std::alllocator_traits
+                capacity_ = size;
+                data_ = new_data;
+                allocator_ = tallocator;
+            }
+        }
+
+        size_type capacity() const{
+            return capacity_;
+        }
+
+        void shrink_to_fit(){
+            allocator_.deallocate(data_+size_,capacity_);
+            capacity_ = size_;
+        }
+
+        void clear(){
+            for (size_type i = 0; i < size_; ++i){
+                allocator_.destroy(data_+i);
+            }
+            size_ = 0;
         }
 
         void debug_cout_data() {
@@ -211,6 +270,13 @@ namespace pretty_vector {
             }
             size_ = capacity_;
         };
+
+        void move_data_to_pointer(pointer data) {
+            for (size_type i = 0; i < size_; i++) {
+                std::allocator_traits<Allocator>::construct(allocator_, data + i, std::move(data_[i]));
+                std::allocator_traits<Allocator>::destroy(allocator_, data_ + i);
+            }
+        }
     };
 }
 
@@ -220,5 +286,14 @@ int main() {
     std::cout << '\n';
     std::cout << a.front();
     std::cout << a.back();
+    std::cout << '\n';
+    a[3] = 1;
+    a.reserve(11);
+    a[9] = 3;
+    //a.clear();
+    pretty_vector::Vector<int>::iterator it(a.begin());
+    for (it = a.begin(); it <= a.end(); ++it) {
+        std::cout << *it << ' ';
+    }
     return 0;
 }
