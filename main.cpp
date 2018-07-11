@@ -1,6 +1,6 @@
 #include <iostream>
 #include <limits>
-
+#include <cmath>
 
 namespace pretty_vector {
 
@@ -16,6 +16,7 @@ namespace pretty_vector {
         using const_reference = const T &;
         using pointer = typename std::allocator_traits<Allocator>::pointer;
         using const_pointer = typename std::allocator_traits<Allocator>::const_pointer;
+        float resize_coefficient = 1.5;
 
         template<typename V>
         class MyVectorIterator : public std::iterator<std::random_access_iterator_tag, V, int> {
@@ -40,6 +41,10 @@ namespace pretty_vector {
                 c = other.c;
                 i = other.i;
                 return *this;
+            }
+
+            size_type current_index(){
+                return i;
             }
 
             reference operator*() const {
@@ -253,10 +258,56 @@ namespace pretty_vector {
             size_ = 0;
         }
 
+        template< class... Args >
+        iterator emplace( iterator pos, Args&&... args ){
+            //this may be not working
+            insert(pos,T(&args...));
+        }
+
         iterator insert( iterator pos, const T& value ){
-            size_type start_position = std::distance(this->begin(), pos);
-            move_data_from_position_to_pointer(start_position, data_+start_position+1);
+            if (capacity_ - size_ < 1){
+                reserve(capacity_+1);
+            }
+            size_type start_position = static_cast<size_type>(pos.current_index());
+            shift_right_from_position(start_position);
             data_[start_position] = value;
+            size_++;
+        }
+
+        void insert( iterator pos, size_type count, const T& value ){
+            iterator titer = pos;
+            for (size_type i = 0; i < count; ++i){
+                insert(titer,value);
+                titer++;
+            }
+        }
+
+        template< class InputIt >
+        void insert( iterator pos, InputIt first, InputIt last){
+            iterator titer = pos;
+            for (InputIt t = first; t != last; ++t){
+                insert(titer,t);
+                titer++;
+            }
+        }
+
+        iterator erase( iterator pos ){
+            allocator_.destroy(data_+pos.current_index());
+            return ++pos;
+        }
+
+        iterator erase( iterator first, iterator last ){
+            for (iterator t = first; t != last; ++t){
+                erase(t);
+            }
+        }
+
+        void push_back( const T& value ){
+            if (capacity_ < size_ * resize_coefficient){
+                reserve (static_cast<size_type>(size_ * resize_coefficient));
+            }
+            iterator it = end();
+            insert(++it, value);
         }
 
         void debug_cout_data() {
@@ -277,15 +328,17 @@ namespace pretty_vector {
             size_ = capacity_;
         };
 
-        void move_data_from_position_to_pointer(size_type pos, pointer data){
-            for (size_type i = pos; i < size_; i++) {
-                allocator_.construct(data + i, std::move(data_[i]));
-                allocator_.destroy(data_ + i);
+        void shift_right_from_position(size_type pos){
+            for (size_type i = size_; i > pos ; --i){
+                data_[i] = data_[i-1];
             }
         }
 
         void move_data_to_pointer(pointer data) {
-            move_data_from_position_to_pointer(0, data);
+            for (size_type i = 0; i < size_; i++) {
+                allocator_.construct(data + i, std::move(data_[i]));
+                allocator_.destroy(data_ + i);
+            }
         }
     };
 }
@@ -297,11 +350,26 @@ int main() {
     std::cout << a.front();
     std::cout << a.back();
     std::cout << '\n';
-    a[3] = 1;
+    a[0] = 0;
+    a[1] = 1;
+    a[2] = 2;
+    a[3] = 3;
+    a[4] = 4;
+    a[5] = 5;
+    a[6] = 6;
+    a[7] = 7;
+    a[8] = 8;
+    a[9] = 9;
     a.reserve(11);
-    a[9] = 3;
+    //a[9] = 3;
     //a.clear();
     pretty_vector::Vector<int>::iterator it(a.begin());
+    a.insert(++it, pretty_vector::Vector<int>::size_type(3), 15);
+    a.insert(++it, -5, 0);
+    //a.emplace(it,100);
+    //a.erase(it);
+    a.push_back(100);
+
     for (it = a.begin(); it <= a.end(); ++it) {
         std::cout << *it << ' ';
     }
