@@ -1,133 +1,115 @@
 #include <iostream>
 
-class pointer;
 
-class pointer;
 namespace pretty_vector {
 
-    enum {constant = true, nonconstant = false};
-
-    template <typename T, bool is_const_iterator, class Allocator = std::allocator<T>>
-    class VectorIterator
-    {
-        using reference = T &;
-        using const_reference = const T &;
-        using pointer = typename std::allocator_traits<Allocator>::pointer;
+    template<typename C, typename V>
+    class MyVectorIterator : public std::iterator<std::random_access_iterator_tag, V, int> {
 
     public:
-        using size_type = int;
+        C *c;
+        unsigned int i;
 
-        VectorIterator() = delete;
+        MyVectorIterator(C *c) : c(c), i(0) {}
 
-        VectorIterator(const VectorIterator& other) : ptr_data_(other.ptr_data_) {}
-        VectorIterator(VectorIterator&& other) noexcept : ptr_data_(std::move(other.ptr_data_)) {}
+        MyVectorIterator(C *c, unsigned int i) : c(c), i(i) {}
 
-        VectorIterator(const typename
-                       std::iterator_traits<VectorIterator<T, is_const_iterator>>:: pointer& ptr_data)
-                : ptr_data_(ptr_data) {}
+    public:
+        typedef typename std::iterator<std::random_access_iterator_tag, V, int>::pointer pointer;
+        typedef typename std::iterator<std::random_access_iterator_tag, V, int>::reference reference;
+        typedef typename std::iterator<std::random_access_iterator_tag, V, int>::difference_type difference_type;
 
-        ~VectorIterator() = default;
+        template<typename C2, typename V2>
+        MyVectorIterator(const MyVectorIterator<C2, V2> &other) : c(other.c), i(other.i) {}
 
-
-        VectorIterator& operator=(const VectorIterator& other) {
-            ptr_data_ = other.ptr_data_;
+        template<typename C2, typename V2>
+        MyVectorIterator &operator=(const MyVectorIterator<C2, V2> &other) {
+            c = other.c;
+            i = other.i;
             return *this;
         }
 
-        VectorIterator& operator=(VectorIterator&& other) {
-            std::swap(ptr_data_, other.ptr_data_);
+        reference operator*() const {
+            return (*c)[i];
+        }
+
+        pointer operator->() const {
+            return &(*c)[i];
+        }
+
+        MyVectorIterator &operator++() {
+            ++i;
             return *this;
         }
 
-        typename std::iterator_traits<VectorIterator<T, is_const_iterator>>::reference operator*() const {
-            return *ptr_data_;
-        }
-
-        typename std::iterator_traits<VectorIterator<T, is_const_iterator>>::pointer operator->() const {
-            return ptr_data_;
-        }
-
-        typename std::iterator_traits<VectorIterator<T, is_const_iterator>>::reference operator[](size_type n) const {
-            return *(ptr_data_ + n);
-        }
-
-        typename std::iterator_traits<VectorIterator<T, is_const_iterator>>::pointer data() const {
-            return ptr_data_;
-        }
-
-        VectorIterator<T, is_const_iterator>& operator++() {
-            ptr_data_++;
+        MyVectorIterator &operator--() {
+            --i;
             return *this;
         }
 
-        VectorIterator& operator--() {
-            ptr_data_--;
+        MyVectorIterator operator++(int) {
+            return MyVectorIterator(c, i++);
+        }
+
+        MyVectorIterator operator--(int) {
+            return MyVectorIterator(c, i--);
+        }
+
+        MyVectorIterator operator+(const difference_type &n) const {
+            return MyVectorIterator(c, (i + n));
+        }
+
+        MyVectorIterator &operator+=(const difference_type &n) {
+            i += n;
             return *this;
         }
 
-        VectorIterator operator++(int) {
-            VectorIterator tmp(ptr_data_);
-            ptr_data_++;
-            return tmp;
+        MyVectorIterator operator-(const difference_type &n) const {
+            return MyVectorIterator(c, (i - n));
         }
 
-        VectorIterator operator--(int) {
-            VectorIterator tmp(ptr_data_);
-            ptr_data_--;
-            return tmp;
-        }
-
-        VectorIterator& operator+=(size_type n) {
-            ptr_data_ += n;
+        MyVectorIterator &operator-=(const difference_type &n) {
+            i -= n;
             return *this;
         }
 
-        VectorIterator& operator-=(size_type n)  {
-            ptr_data_ -= n;
-            return *this;
+        reference operator[](const difference_type &n) const {
+            return (*c)[i + n];
         }
 
-        void swap(VectorIterator& b) {
-            std::swap(this->ptr_data_, b.ptr_data_);
+        bool operator==(const MyVectorIterator &other) const {
+            return i == other.i;
         }
 
-        typename std::iterator_traits<VectorIterator<T, is_const_iterator>>::difference_type
-        friend operator-(const VectorIterator& lv, const VectorIterator& rv)
-        {
-            return lv.ptr_data_ - rv.ptr_data_;
+        bool operator!=(const MyVectorIterator &other) const {
+            return i != other.i;
         }
 
-
-        friend VectorIterator<T, is_const_iterator> operator+(const VectorIterator<T, is_const_iterator>& iter, int n)
-        {
-            return n + iter;
+        bool operator<(const MyVectorIterator &other) const {
+            return i < other.i;
         }
 
-        friend VectorIterator<T, is_const_iterator> operator+(int n, const VectorIterator<T, is_const_iterator>& iter)
-        {
-            return VectorIterator<T, is_const_iterator>(iter.ptr_data_ + n);
+        bool operator>(const MyVectorIterator &other) const {
+            return i > other.i;
         }
 
-        friend VectorIterator<T, is_const_iterator> operator-(const VectorIterator<T, is_const_iterator> & iter, int n)
-        {
-            return n - iter;
+        bool operator<=(const MyVectorIterator &other) const {
+            return i <= other.i;
         }
 
-        friend VectorIterator<T, is_const_iterator> operator-(int n, const VectorIterator<T, is_const_iterator>& iter)
-        {
-            return VectorIterator<T, is_const_iterator>(iter.ptr_data_ - n);
+        bool operator>=(const MyVectorIterator &other) const {
+            return i >= other.i;
         }
 
+        difference_type operator+(const MyVectorIterator &other) const {
+            return i + other.i;
+        }
 
-        // const_iterator cast
-        operator VectorIterator<T, true>() const {
-            return VectorIterator<T, true>(this->ptr_data_);
-        };
-
-    private:
-        typename std::iterator_traits<VectorIterator<T, is_const_iterator>>::pointer ptr_data_;
-
+        difference_type operator-(const MyVectorIterator &other) const {
+            return i - other.i;
+        }
     };
+
 
     template<class T, class Allocator = std::allocator<T>>
     class Vector {
@@ -139,8 +121,33 @@ namespace pretty_vector {
         using const_reference = const T &;
         using pointer = typename std::allocator_traits<Allocator>::pointer;
         using const_pointer = typename std::allocator_traits<Allocator>::const_pointer;
-        using iterator = VectorIterator<T, nonconstant>;
-        using const_iterator = VectorIterator<T, constant>;
+
+        typedef MyVectorIterator<T, data_type> iterator;
+        typedef MyVectorIterator<const T, const data_type> const_iterator;
+
+        //using iterator = VectorIterator<T, nonconstant>;
+        //using const_iterator = VectorIterator<T, constant>;
+
+
+        /*class iterator
+        {
+        public:
+            typedef iterator self_type;
+            typedef T value_type;
+            typedef T& reference;
+            typedef T* pointer;
+            typedef std::forward_iterator_tag iterator_category;
+            typedef int difference_type;
+            iterator(pointer ptr) : ptr_(ptr) { }
+            self_type operator++() { self_type i = *this; ptr_++; return i; }
+            self_type operator++(int junk) { ptr_++; return *this; }
+            reference operator*() { return *ptr_; }
+            pointer operator->() { return ptr_; }
+            bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+            bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+        private:
+            pointer ptr_;
+        };*/
 
     public:
         explicit Vector(const Allocator &alloc = Allocator()) {
@@ -176,32 +183,40 @@ namespace pretty_vector {
             return at(pos);
         }
 
-        reference front(){
+        reference front() {
             return at(0);
         }
 
-        const_reference front() const{
+        const_reference front() const {
             return at(0);
         }
 
-        reference back(){
+        reference back() {
             return at(size_ - 1);
         }
 
-        const_reference back() const{
+        const_reference back() const {
             return at(size_ - 1);
         }
 
-        T* data(){
+        T *data() {
             return data_;
         }
 
-        const T* data() const{
+        const T *data() const {
             return data_;
         }
 
-        iterator begin(){
+        iterator begin() {
             return iterator(data_, size_);
+        }
+
+        const_iterator begin() const {
+            return const_iterator(data_, size_);
+        }
+
+        const_iterator cbegin() const {
+            return const_iterator(data_, size_);
         }
 
         void debug_cout_data() {
