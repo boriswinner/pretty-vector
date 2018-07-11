@@ -253,6 +253,12 @@ namespace pretty_vector {
             size_ = 0;
         }
 
+        iterator insert( iterator pos, const T& value ){
+            size_type start_position = std::distance(this->begin(), pos);
+            move_data_from_position_to_pointer(start_position, data_+start_position+1);
+            data_[start_position] = value;
+        }
+
         void debug_cout_data() {
             for (int i = 0; i < size_; ++i) {
                 std::cout << data_[i];
@@ -271,11 +277,15 @@ namespace pretty_vector {
             size_ = capacity_;
         };
 
-        void move_data_to_pointer(pointer data) {
-            for (size_type i = 0; i < size_; i++) {
-                std::allocator_traits<Allocator>::construct(allocator_, data + i, std::move(data_[i]));
-                std::allocator_traits<Allocator>::destroy(allocator_, data_ + i);
+        void move_data_from_position_to_pointer(size_type pos, pointer data){
+            for (size_type i = pos; i < size_; i++) {
+                allocator_.construct(data + i, std::move(data_[i]));
+                allocator_.destroy(data_ + i);
             }
+        }
+
+        void move_data_to_pointer(pointer data) {
+            move_data_from_position_to_pointer(0, data);
         }
     };
 }
