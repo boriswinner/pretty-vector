@@ -16,134 +16,123 @@ namespace pretty_vector {
         using const_pointer = typename std::allocator_traits<Allocator>::const_pointer;
         float resize_coefficient = 1.5;
 
-        template<typename V>
-        class MyVectorIterator : public std::iterator<std::random_access_iterator_tag, V, int> {
-
-        protected:
-            pointer c;
-            size_type i;
-            typedef typename std::iterator<std::random_access_iterator_tag, V, int>::pointer pointer;
-            typedef typename std::iterator<std::random_access_iterator_tag, V, int>::reference reference;
-            typedef typename std::iterator<std::random_access_iterator_tag, V, int>::difference_type difference_type;
-
+        template<typename TypeT>
+        class MyIterator :
+                public std::iterator<std::random_access_iterator_tag, TypeT> {
         public:
-            MyVectorIterator(pointer c) : c(c), i(0) {}
 
-            MyVectorIterator(pointer c, size_type i) : c(c), i(i) {}
+            template<typename T2>
+            MyIterator(const MyIterator<T2>& other) : data_(other.data_), index_(other.index_) {}
 
-            template<typename V2>
-            MyVectorIterator(const MyVectorIterator<V2> &other) : c(other.c), i(other.i) {}
+            MyIterator(pointer data): data_(data), index_(0){}
+            MyIterator(pointer data, size_type index): data_(data), index_(index){}
 
-            template<typename V2>
-            MyVectorIterator &operator=(const MyVectorIterator<V2> &other) {
-                c = other.c;
-                i = other.i;
+            template<typename T2>
+            MyIterator &operator=(const MyIterator<T2> &other) {
+                data_ = other.data_;
+                index_ = other.index_;
                 return *this;
             }
 
             size_type current_index() {
-                return i;
+                return index_;
             }
 
-            reference operator*() const {
-                return (c)[i];
+            MyIterator operator++(int) {
+                return MyIterator(data_, index_++);
             }
 
-            pointer operator->() const {
-                return &(c)[i];
+            MyIterator operator--(int) {
+                return MyIterator(data_, index_--);
             }
 
-            MyVectorIterator &operator++() {
-                ++i;
+            MyIterator &operator++() {
+                ++index_;
                 return *this;
             }
 
-            MyVectorIterator &operator--() {
-                --i;
+            MyIterator &operator--() {
+                --index_;
                 return *this;
             }
 
-            MyVectorIterator operator++(int) {
-                return MyVectorIterator(c, i++);
+            MyIterator operator+(const difference_type &n) const {
+                return MyIterator(data_, (index_ + n));
             }
 
-            MyVectorIterator operator--(int) {
-                return MyVectorIterator(c, i--);
-            }
-
-            MyVectorIterator operator+(const difference_type &n) const {
-                return MyVectorIterator(c, (i + n));
-            }
-
-            MyVectorIterator &operator+=(const difference_type &n) {
-                i += n;
+            MyIterator &operator+=(const difference_type &n) {
+                index_ += n;
                 return *this;
             }
 
-            MyVectorIterator operator-(const difference_type &n) const {
-                return MyVectorIterator(c, (i - n));
+            MyIterator operator-(const difference_type &n) const {
+                return MyIterator(data_, (index_ - n));
             }
 
-            MyVectorIterator &operator-=(const difference_type &n) {
-                i -= n;
+            MyIterator &operator-=(const difference_type &n) {
+                index_ -= n;
                 return *this;
             }
 
             reference operator[](const difference_type &n) const {
-                return (c)[i + n];
+                return (data_)[index_ + n];
             }
 
-            bool operator==(const MyVectorIterator &other) const {
-                return i == other.i;
+            reference operator*() const {
+                return data_[index_];
             }
 
-            bool operator!=(const MyVectorIterator &other) const {
-                return i != other.i;
+            pointer operator->() const {
+                return &data_[index_];
             }
 
-            bool operator<(const MyVectorIterator &other) const {
-                return i < other.i;
+            bool operator==(const MyIterator &other) const {
+                return index_ == other.index_;
             }
 
-            bool operator>(const MyVectorIterator &other) const {
-                return i > other.i;
+            bool operator!=(const MyIterator &other) const {
+                return index_ != other.index_;
             }
 
-            bool operator<=(const MyVectorIterator &other) const {
-                return i <= other.i;
+            bool operator<(const MyIterator &other) const {
+                return index_ < other.index_;
             }
 
-            bool operator>=(const MyVectorIterator &other) const {
-                return i >= other.i;
+            bool operator>(const MyIterator &other) const {
+                return index_ > other.index_;
             }
 
-            difference_type operator+(const MyVectorIterator &other) const {
-                return i + other.i;
+            difference_type operator+(const MyIterator &other) const {
+                return index_ + other.index_;
             }
 
-            difference_type operator-(const MyVectorIterator &other) const {
-                return i - other.i;
+            difference_type operator-(const MyIterator &other) const {
+                return index_ - other.index_;
             }
+
+        public:
+            pointer data_;
+            size_type index_;
+            typedef typename std::iterator<std::random_access_iterator_tag, TypeT, int>::difference_type difference_type;
         };
 
-        typedef MyVectorIterator<data_type> iterator;
-        typedef MyVectorIterator<const data_type> const_iterator;
-
+        typedef MyIterator<data_type> iterator;
+        typedef MyIterator<const data_type> const_iterator;
     public:
-        const allocator_type get_allocator() const {
+        /*const allocator_type get_allocator() const {
             return allocator_;
-        }
+        }*/
 
         explicit vector(const Allocator &alloc = Allocator()) : allocator_(alloc), capacity_(0), size_(0) {};
 
-        explicit vector(size_type size, const T &value, const Allocator &alloc = Allocator()) :
-                allocator_(alloc), capacity_(size), size_(0), data_(allocator_.allocate(capacity_)) {
+        explicit vector(size_type count, const T &value, const Allocator &alloc = Allocator()) :
+                allocator_(alloc), capacity_(count), size_(count), data_(allocator_.allocate(capacity_)) {
             fill_with_value(value);
         }
 
-        explicit vector(size_type size, const Allocator &alloc = Allocator()) :
-                allocator_(alloc), capacity_(size), size_(size), data_(allocator_.allocate(capacity_)) {
-            for (size_type i = 0; i < size; ++i) {
+        explicit vector(size_type count) :
+                allocator_(Allocator()), capacity_(count), size_(count), data_(allocator_.allocate(capacity_)) {
+            for (size_type i = 0; i < count; ++i) {
                 allocator_.construct(data_ + i);
             }
         };
@@ -156,11 +145,21 @@ namespace pretty_vector {
             insert(it, first, last);
         }
 
-        vector(vector &other) : allocator_(other.allocator_), capacity_(other.capacity_), size_(other.size_),
-                                      data_(allocator_.allocate(capacity_)){
+        vector(const vector &other) : allocator_(other.allocator_), capacity_(other.capacity_), size_(other.size_),
+                                data_(allocator_.allocate(capacity_)) {
             int i = 0;
             for (iterator it = other.begin(); it != other.end(); ++it) {
                 std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);//copy
+                ++i;
+            }
+        }
+
+        vector(vector &&other, const Allocator &alloc) : allocator_(other.allocator_), capacity_(other.capacity_),
+                                                         size_(other.size_),
+                                                         data_(allocator_.allocate(capacity_)) {
+            int i = 0;
+            for (iterator it = other.begin(); it != other.end(); ++it) {
+                std::allocator_traits<Allocator>::construct(allocator_, data_ + i, std::move(*it));//copy
                 ++i;
             }
         }
@@ -226,15 +225,15 @@ namespace pretty_vector {
         }
 
         iterator end() {
-            return iterator(data_, size_ - 1);
+            return iterator(data_, size_);
         }
 
         const_iterator end() const {
-            return const_iterator(data_, size_ - 1);
+            return const_iterator(data_, size_);
         }
 
         const_iterator cend() const {
-            return const_iterator(data_, size_ - 1);
+            return const_iterator(data_, size_);
         }
 
         bool empty() const {
@@ -292,9 +291,8 @@ namespace pretty_vector {
             if (capacity_ - size_ < 1) {
                 reserve(capacity_ + 1);
             }
-            size_type start_position = static_cast<size_type>(pos.current_index());
-            shift_right_from_position(start_position);
-            data_[start_position] = value;
+            shift_right_from_iterator(pos);
+            *(pos) = value;
             size_++;
         }
 
@@ -317,8 +315,8 @@ namespace pretty_vector {
 
         iterator erase(iterator pos) {
             //this may be not working
-            allocator_.destroy(data_ + pos.current_index());
-            return ++pos;
+            //allocator_.destroy(data_ + pos.current_index());
+            //return ++pos;
         }
 
         iterator erase(iterator first, iterator last) {
@@ -347,8 +345,9 @@ namespace pretty_vector {
         pointer data_;
 
         void fill_with_value(const T &value) {
-            for (size_type i = 0; i < capacity_; ++i) {
-                data_[i] = value;
+            for (iterator it = begin(); it != end(); ++it) {
+                //std::cout << *it;
+                *it = value;
             }
             size_ = capacity_;
         };
@@ -356,6 +355,12 @@ namespace pretty_vector {
         void shift_right_from_position(size_type pos) {
             for (size_type i = size_; i > pos; --i) {
                 data_[i] = data_[i - 1];
+            }
+        }
+
+        void shift_right_from_iterator(iterator pos) {
+            for (iterator titer = end(); titer != pos; --titer) {
+                *titer = *(titer - 1);
             }
         }
 

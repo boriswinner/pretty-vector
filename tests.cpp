@@ -71,11 +71,19 @@ TEST_CASE("Constructors") {
         REQUIRE(test_vector.empty());
     }
 
+    SECTION("vector filled with smth") {
+        pretty_vector::vector<char> test_vector(100,'c');
+        REQUIRE(test_vector.capacity() == 100);
+        REQUIRE(test_vector.size() == 100);
+        for (pretty_vector::vector<char>::const_iterator it = test_vector.begin(); it != test_vector.end(); ++it){
+            REQUIRE(*it == 'c');
+        }
+    }
+
     SECTION("construct with iterators") {
         std::vector<int> std_vec = {0, 10, 132, 228};
         pretty_vector::vector<int> test_vec(std_vec.begin(), std_vec.end());
         REQUIRE(test_vec.capacity() == std_vec.size());
-
         REQUIRE(is_same(test_vec, std_vec));
     }
 
@@ -86,8 +94,29 @@ TEST_CASE("Constructors") {
 
         pretty_vector::vector<NotIntegralType> test_vector_b(test_vector_a);
 
-        //test_vector_a[4].large_field_a[4] = 128;
+        test_vector_a[4].large_field_a[4] = 128;
         REQUIRE(test_vector_b[4].large_field_a[4] == 127);
+    }
+
+    SECTION ("iterators"){
+        pretty_vector::vector<char> a(pretty_vector::vector<char>::size_type(10), 2);
+        a[0] = 0;
+        a[1] = 1;
+        a[2] = 2;
+        a[3] = 3;
+        a[4] = 4;
+        a[5] = 5;
+        a[6] = 6;
+        a[7] = 7;
+        a[8] = 8;
+        a[9] = 9;
+        //pretty_vector::vector<int>::const_iterator cit = a.cbegin();
+    }
+
+    SECTION("move constructor")
+    {
+        //pretty_vector::vector<int> test_vector_a((pretty_vector::vector<char>::size_type(10), 2));
+        //REQUIRE(test_vector_a[5] == 12);
     }
 }
 
