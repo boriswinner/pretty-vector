@@ -41,7 +41,7 @@ namespace pretty_vector {
                 return *this;
             }
 
-            size_type current_index(){
+            size_type current_index() {
                 return i;
             }
 
@@ -130,28 +130,39 @@ namespace pretty_vector {
         typedef MyVectorIterator<const data_type> const_iterator;
 
     public:
-        explicit vector(const Allocator &alloc = Allocator()) {
+        const allocator_type get_allocator() const {
+            return allocator_;
+        }
 
-        };
-
-        explicit vector(size_type size, const Allocator &alloc = Allocator()) :
-                allocator_(alloc), capacity_(size), size_(size), data_(allocator_.allocate(capacity_)) {
-            for (size_type i = 0; i < size; ++i){
-                data_[i] = T();
-            }
-        };
+        explicit vector(const Allocator &alloc = Allocator()) : allocator_(alloc), capacity_(0), size_(0) {};
 
         explicit vector(size_type size, const T &value, const Allocator &alloc = Allocator()) :
                 allocator_(alloc), capacity_(size), size_(0), data_(allocator_.allocate(capacity_)) {
             fill_with_value(value);
         }
 
-        template< class InputIt >
-        vector( InputIt first, InputIt last,
-                const Allocator& alloc = Allocator() ){
+        explicit vector(size_type size, const Allocator &alloc = Allocator()) :
+                allocator_(alloc), capacity_(size), size_(size), data_(allocator_.allocate(capacity_)) {
+            for (size_type i = 0; i < size; ++i) {
+                allocator_.construct(data_ + i);
+            }
+        };
+
+        template<class InputIt>
+        vector(InputIt first, InputIt last,
+               const Allocator &alloc = Allocator()) {
             reserve(last - first);
             iterator it = begin();
             insert(it, first, last);
+        }
+
+        vector(vector &other) : allocator_(other.allocator_), capacity_(other.capacity_), size_(other.size_),
+                                      data_(allocator_.allocate(capacity_)){
+            int i = 0;
+            for (iterator it = other.begin(); it != other.end(); ++it) {
+                std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);//copy
+                ++i;
+            }
         }
 
         reference at(size_type pos) {
@@ -255,31 +266,31 @@ namespace pretty_vector {
             }
         }
 
-        size_type capacity() const{
+        size_type capacity() const {
             return capacity_;
         }
 
-        void shrink_to_fit(){
-            allocator_.deallocate(data_+size_,capacity_);
+        void shrink_to_fit() {
+            allocator_.deallocate(data_ + size_, capacity_);
             capacity_ = size_;
         }
 
-        void clear(){
-            for (size_type i = 0; i < size_; ++i){
-                allocator_.destroy(data_+i);
+        void clear() {
+            for (size_type i = 0; i < size_; ++i) {
+                allocator_.destroy(data_ + i);
             }
             size_ = 0;
         }
 
-        template< class... Args >
-        iterator emplace( iterator pos, Args&&... args ){
+        template<class... Args>
+        iterator emplace(iterator pos, Args &&... args) {
             //this may be not working
-            insert(pos,T(&args...));
+            insert(pos, T(&args...));
         }
 
-        iterator insert( iterator pos, const T& value ){
-            if (capacity_ - size_ < 1){
-                reserve(capacity_+1);
+        iterator insert(iterator pos, const T &value) {
+            if (capacity_ - size_ < 1) {
+                reserve(capacity_ + 1);
             }
             size_type start_position = static_cast<size_type>(pos.current_index());
             shift_right_from_position(start_position);
@@ -287,38 +298,38 @@ namespace pretty_vector {
             size_++;
         }
 
-        void insert( iterator pos, size_type count, const T& value ){
+        void insert(iterator pos, size_type count, const T &value) {
             iterator titer = pos;
-            for (size_type i = 0; i < count; ++i){
-                insert(titer,value);
+            for (size_type i = 0; i < count; ++i) {
+                insert(titer, value);
                 titer++;
             }
         }
 
-        template< class InputIt >
-        void insert( iterator pos, InputIt first, InputIt last){
+        template<class InputIt>
+        void insert(iterator pos, InputIt first, InputIt last) {
             iterator titer = pos;
-            for (InputIt t = first; t != last; ++t){
+            for (InputIt t = first; t != last; ++t) {
                 insert(titer, *t);
                 titer++;
             }
         }
 
-        iterator erase( iterator pos ){
+        iterator erase(iterator pos) {
             //this may be not working
-            allocator_.destroy(data_+pos.current_index());
+            allocator_.destroy(data_ + pos.current_index());
             return ++pos;
         }
 
-        iterator erase( iterator first, iterator last ){
-            for (iterator t = first; t != last; ++t){
+        iterator erase(iterator first, iterator last) {
+            for (iterator t = first; t != last; ++t) {
                 erase(t);
             }
         }
 
-        void push_back( const T& value ){
-            if (capacity_ < size_ * resize_coefficient){
-                reserve (static_cast<size_type>(size_ * resize_coefficient));
+        void push_back(const T &value) {
+            if (capacity_ < size_ * resize_coefficient) {
+                reserve(static_cast<size_type>(size_ * resize_coefficient));
             }
             iterator it = end();
             insert(++it, value);
@@ -342,9 +353,9 @@ namespace pretty_vector {
             size_ = capacity_;
         };
 
-        void shift_right_from_position(size_type pos){
-            for (size_type i = size_; i > pos ; --i){
-                data_[i] = data_[i-1];
+        void shift_right_from_position(size_type pos) {
+            for (size_type i = size_; i > pos; --i) {
+                data_[i] = data_[i - 1];
             }
         }
 
