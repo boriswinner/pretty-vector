@@ -3,4 +3,4 @@ project(pretty_vector)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(pretty_vector main.cpp vector.h)
+add_executable(pretty_vector tests.h tests.cpp vector.h)

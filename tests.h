@@ -1,5 +1,7 @@
+#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "vector.h"
-#include <memory>
-#include <cstring>
+
+//
+//#include <memory>
+//#include <cstring>
 
