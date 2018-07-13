@@ -336,7 +336,7 @@ namespace pretty_vector {
                                                         std::forward<Args>(args)...);
             ++size_;
 
-            return iterator(data_ + index_position);
+            return iterator(data_, index_position);
         }
 
         iterator insert(const_iterator pos, const T &value ) {
@@ -391,11 +391,29 @@ namespace pretty_vector {
         }
 
         void push_back(const T &value) {
-            if (capacity_ < size_ * resize_coefficient) {
-                reserve(static_cast<size_type>(size_ * resize_coefficient));
-            }
+            reallocation(size_ + 1);
             iterator it = end();
-            insert(++it, value);
+            insert(it, value);
+        }
+
+        void pop_back() {
+            if (size_ > 0) {
+                size_--;
+                std::allocator_traits<Allocator>::destroy(allocator_, data_ + size_);
+            }
+        }
+
+        void resize( size_type count, T value = T() ){
+            if (count <= size_){
+                for (int i = 0; i < abs(count-size_); ++i){
+                    pop_back();
+                }
+            } else{
+                for (auto i = 0; i < abs(count-size_); ++i){
+                    std::allocator_traits<Allocator>::construct(allocator_, data_ + size_ + i, value);
+                }
+                size_ += abs(count-size_);
+            }
         }
 
         void debug_cout_data() {

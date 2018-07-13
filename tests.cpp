@@ -16,6 +16,18 @@ bool is_same(const T& a, const U& s)
     return true;
 }
 
+class SomeClass
+{
+public:
+    SomeClass(char p) :p_(p) {}
+    SomeClass() :p_('k') {}
+    char getP() { return p_; }
+    friend bool operator==(const SomeClass& lhs, const SomeClass& rhs) { return lhs.p_ == rhs.p_;}
+    friend bool operator!=(const SomeClass& lhs, const SomeClass& rhs) { return !(lhs == rhs);}
+private:
+    char p_;
+};
+
 class ClassForTesting
 {
 public:
@@ -109,22 +121,90 @@ TEST_CASE("Constructors") {
 
 }
 
-TEST_CASE("Inserts and emplaces"){
-    SECTION ("Inserts"){
-        pretty_vector::vector<char> a(pretty_vector::vector<char>::size_type (1));
+TEST_CASE("Inserts and emplaces") {
+    SECTION ("Inserts") {
+        pretty_vector::vector<char> a(pretty_vector::vector<char>::size_type(1));
         a[0] = 'a';
-        a.insert(a.begin(),'z');
-        a.insert(a.begin(),'y');
-        a.insert(a.begin()+1,'x');
-        pretty_vector::vector<char> other(pretty_vector::vector<char>::size_type (3));
+        a.insert(a.begin(), 'z');
+        a.insert(a.begin(), 'y');
+        a.insert(a.begin() + 1, 'x');
+        pretty_vector::vector<char> other(pretty_vector::vector<char>::size_type(3));
         other[0] = 'x';
         other[1] = 'y';
         other[2] = 'z';
-        a.insert(a.begin(),other.begin()+1,other.begin()+2);
-        a.insert(a.begin(),3,'p');
-        a.insert(a.begin(),{'p','p'});
-        std::vector<char> std_a{'p','p','p','p','p','y','y','x','z','a'};
-        REQUIRE(is_same(a,std_a));
+        a.insert(a.begin(), other.begin() + 1, other.begin() + 2);
+        a.insert(a.begin(), 3, 'p');
+        a.insert(a.begin(), {'p', 'p'});
+        std::vector<char> std_a{'p', 'p', 'p', 'p', 'p', 'y', 'y', 'x', 'z', 'a'};
+        REQUIRE(is_same(a, std_a));
+    }
+
+    SECTION("Emplace") {
+        pretty_vector::vector<int> myvector = {10, 20, 30};
+
+        auto it = myvector.emplace(myvector.begin() + 1, 100);
+        myvector.emplace(it, 200);
+        myvector.emplace(myvector.end(), 300);
+
+        std::vector<int> std_myvector{10, 200, 100, 20, 30, 300};
+        REQUIRE(is_same(myvector, std_myvector));
+    }
+
+    SECTION("Emplace Back") {
+        pretty_vector::vector<int> myvector = {10, 20, 30};
+        myvector.emplace_back(100);
+        myvector.emplace_back(200);
+        std::vector<int> std_myvector{10, 20, 30, 100, 200};
+        REQUIRE(is_same(myvector, std_myvector));
     }
 }
 
+TEST_CASE ("push and pop back"){
+    SECTION("push_back")
+    {
+        pretty_vector::vector<int> test_vector;
+        test_vector.push_back(5);
+        test_vector.push_back(10);
+
+        REQUIRE(test_vector.size() == 2);
+        REQUIRE(test_vector.capacity() > 2);
+
+        REQUIRE(test_vector[0] == 5);
+        REQUIRE(test_vector[1] == 10);
+
+        for (int i = 0; i < 10; i++) {
+            test_vector.push_back(i);
+        }
+
+        REQUIRE(test_vector.size() == 12);
+        REQUIRE(test_vector.capacity() == 15);
+        for (size_t i = 2; i < test_vector.size(); i++)
+        {
+            REQUIRE(test_vector[i] == i-2);
+        }
+    }
+
+    SECTION("pop_back"){
+        pretty_vector::vector<int> test_vector;
+        test_vector.push_back(5);
+        test_vector.push_back(10);
+        test_vector.pop_back();
+        REQUIRE(test_vector.size() == 1);
+        REQUIRE(test_vector[0] == 5);
+    }
+
+}
+
+TEST_CASE ("Resize") {
+    SECTION("resize"){
+        pretty_vector::vector<int> test_vector;
+        test_vector.push_back(5);
+        test_vector.push_back(10);
+        test_vector.resize(5,1488);
+        for (auto it = test_vector.begin(); it != test_vector.end(); ++it){
+            std::cout << *it << ' ';
+        }
+        REQUIRE(test_vector.size() == 5);
+        REQUIRE(test_vector[4] == 1488);
+    }
+}
