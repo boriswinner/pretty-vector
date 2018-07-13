@@ -339,8 +339,12 @@ namespace pretty_vector {
             return iterator(data_ + index_position);
         }
 
-        iterator insert(const_iterator position, const T &x) {
-            return this->emplace(position, std::forward<const T &>(x));
+        iterator insert(const_iterator pos, const T &value ) {
+            return this->emplace(pos, std::forward<const T &>(value));
+        }
+
+        iterator insert( const_iterator pos, T&& value ){
+            return this->emplace(pos, std::forward<const T &>(value));
         }
 
         iterator insert(const_iterator pos, size_type count, const T &value) {
@@ -360,6 +364,18 @@ namespace pretty_vector {
                 std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);
                 ++i;
             }
+            size_ += size;
+        }
+
+        iterator insert( const_iterator pos, std::initializer_list<T> ilist ){
+            size_type size = ilist.end() - ilist.begin();
+            shift_right(size, pos, end());
+            int i = pos.current_index();
+            for (auto it = ilist.begin(); it != ilist.end(); it++) {
+                std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);
+                ++i;
+            }
+            size_ += size;
         }
 
         iterator erase(iterator pos) {

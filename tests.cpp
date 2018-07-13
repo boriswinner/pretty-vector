@@ -121,8 +121,9 @@ TEST_CASE("Inserts and emplaces"){
         other[1] = 'y';
         other[2] = 'z';
         a.insert(a.begin(),other.begin()+1,other.begin()+2);
-        a.insert(a.begin(),5,'p');
-        std::vector<char> std_a{'p','p','p','p','p','y','y','x','z'};
+        a.insert(a.begin(),3,'p');
+        a.insert(a.begin(),{'p','p'});
+        std::vector<char> std_a{'p','p','p','p','p','y','y','x','z','a'};
         REQUIRE(is_same(a,std_a));
     }
 }
