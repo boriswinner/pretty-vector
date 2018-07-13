@@ -344,17 +344,17 @@ namespace pretty_vector {
         }
 
         iterator insert(const_iterator pos, size_type count, const T &value) {
-            /*iterator titer = pos;
-            for (size_type i = 0; i < count; ++i) {
-                insert(titer, value);
-                titer++;
-            }*/
+            shift_right(count, pos, end());
+            for (auto i = 0; i < count; ++i){
+                std::allocator_traits<Allocator>::construct(allocator_, data_ + i, value);
+            }
+            size_ += count;
         }
 
         template<class InputIt>
         iterator insert(iterator pos, InputIt first, InputIt last) {
             size_type size = last - first;
-            shift_right(size, pos, pos + size);
+            shift_right(size, pos, end());
             int i = pos.current_index();
             for (auto it = first; it != last; it++) {
                 std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);

@@ -98,6 +98,18 @@ TEST_CASE("Constructors") {
         REQUIRE(test_vector_b[4].large_field_a[4] == 127);
     }
 
+    SECTION("brace-enclosed initializer"){
+        pretty_vector::vector<int> a({1, 2, 3});
+        int i = 1;
+        for (pretty_vector::vector<int>::const_iterator it = a.begin(); it != a.end(); ++it){
+            REQUIRE(*it == i);
+            ++i;
+        }
+    }
+
+}
+
+TEST_CASE("Inserts and emplaces"){
     SECTION ("Inserts"){
         pretty_vector::vector<char> a(pretty_vector::vector<char>::size_type (1));
         a[0] = 'a';
@@ -110,16 +122,8 @@ TEST_CASE("Constructors") {
         other[2] = 'z';
         a.insert(a.begin(),other.begin()+1,other.begin()+2);
         a.insert(a.begin(),5,'p');
+        std::vector<char> std_a{'p','p','p','p','p','y','y','x','z'};
+        REQUIRE(is_same(a,std_a));
     }
-
-    SECTION("brace-enclosed initializer"){
-        pretty_vector::vector<int> a({1, 2, 3});
-        int i = 1;
-        for (pretty_vector::vector<int>::const_iterator it = a.begin(); it != a.end(); ++it){
-            REQUIRE(*it == i);
-            ++i;
-        }
-    }
-
 }
 
