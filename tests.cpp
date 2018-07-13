@@ -83,7 +83,7 @@ TEST_CASE("Constructors") {
     SECTION("construct with iterators") {
         std::vector<int> std_vec = {0, 10, 132, 228};
         pretty_vector::vector<int> test_vec(std_vec.begin(), std_vec.end());
-        REQUIRE(test_vec.capacity() == std_vec.size());
+        REQUIRE(test_vec.size() == std_vec.size());
         REQUIRE(is_same(test_vec, std_vec));
     }
 
@@ -98,19 +98,21 @@ TEST_CASE("Constructors") {
         REQUIRE(test_vector_b[4].large_field_a[4] == 127);
     }
 
-    SECTION ("iterators"){
-        pretty_vector::vector<char> a(pretty_vector::vector<char>::size_type(10), 2);
-        a[0] = 0;
-        a[1] = 1;
-        a[2] = 2;
-        a[3] = 3;
-        a[4] = 4;
-        a[5] = 5;
-        a[6] = 6;
-        a[7] = 7;
-        a[8] = 8;
-        a[9] = 9;
-        //pretty_vector::vector<int>::const_iterator cit = a.cbegin();
+    SECTION ("Inserts"){
+        pretty_vector::vector<char> a(pretty_vector::vector<char>::size_type (1));
+        a[0] = 'a';
+        a.insert(a.begin(),'z');
+        a.insert(a.begin(),'y');
+        a.insert(a.begin()+1,'x');
+        pretty_vector::vector<char> other(pretty_vector::vector<char>::size_type (3));
+        other[0] = 'x';
+        other[1] = 'y';
+        other[2] = 'z';
+        a.insert(a.begin(),other.begin()+1,other.begin()+2);
+        a.insert(a.begin(),5,'p');
+        for (pretty_vector::vector<char >::const_iterator it = a.begin(); it != a.end(); ++it){
+            std::cout << *it;
+        }
     }
 
     SECTION("move constructor")
