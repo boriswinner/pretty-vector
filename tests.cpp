@@ -110,15 +110,16 @@ TEST_CASE("Constructors") {
         other[2] = 'z';
         a.insert(a.begin(),other.begin()+1,other.begin()+2);
         a.insert(a.begin(),5,'p');
-        for (pretty_vector::vector<char >::const_iterator it = a.begin(); it != a.end(); ++it){
-            std::cout << *it;
+    }
+
+    SECTION("brace-enclosed initializer"){
+        pretty_vector::vector<int> a({1, 2, 3});
+        int i = 1;
+        for (pretty_vector::vector<int>::const_iterator it = a.begin(); it != a.end(); ++it){
+            REQUIRE(*it == i);
+            ++i;
         }
     }
 
-    SECTION("move constructor")
-    {
-        //pretty_vector::vector<int> test_vector_a((pretty_vector::vector<char>::size_type(10), 2));
-        //REQUIRE(test_vector_a[5] == 12);
-    }
 }
 

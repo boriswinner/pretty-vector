@@ -7,7 +7,7 @@ namespace pretty_vector {
     class vector {
     public:
         using data_type = T;
-        using difference_type = std::ptrdiff_t ;
+        using difference_type = std::ptrdiff_t;
         using size_type = unsigned int;
         using reference = T &;
         using const_reference = const T &;
@@ -21,10 +21,11 @@ namespace pretty_vector {
         public:
 
             template<typename T2>
-            MyIterator(const MyIterator<T2>& other) : data_(other.data_), index_(other.index_) {}
+            MyIterator(const MyIterator<T2> &other) : data_(other.data_), index_(other.index_) {}
 
-            MyIterator(pointer data): data_(data), index_(0){}
-            MyIterator(pointer data, size_type index): data_(data), index_(index){}
+            MyIterator(pointer data) : data_(data), index_(0) {}
+
+            MyIterator(pointer data, size_type index) : data_(data), index_(index) {}
 
             template<typename T2>
             MyIterator &operator=(const MyIterator<T2> &other) {
@@ -37,7 +38,7 @@ namespace pretty_vector {
                 return index_;
             }
 
-            pointer iterator_data(){
+            pointer iterator_data() {
                 return data_;
             }
 
@@ -142,7 +143,8 @@ namespace pretty_vector {
         }
 
         explicit vector(size_type count) :
-                allocator_(Allocator()), capacity_(count), size_(count), data_(std::allocator_traits<Allocator>::allocate(allocator_, count)) {
+                allocator_(Allocator()), capacity_(count), size_(count),
+                data_(std::allocator_traits<Allocator>::allocate(allocator_, count)) {
             for (size_type i = 0; i < count; ++i) {
                 allocator_.construct(data_ + i);
             }
@@ -154,13 +156,14 @@ namespace pretty_vector {
             reserve(last - first);
             iterator it = begin();
             insert(it, first, last);
+            size_ = last - first;
         }
 
         vector(const vector &other) : allocator_(other.allocator_), capacity_(other.capacity_), size_(other.size_),
-                                data_(allocator_.allocate(capacity_)) {
+                                      data_(allocator_.allocate(capacity_)) {
             int i = 0;
             for (iterator it = other.begin(); it != other.end(); ++it) {
-                std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);//copy
+                std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);
                 ++i;
             }
         }
@@ -172,6 +175,17 @@ namespace pretty_vector {
             for (iterator it = other.begin(); it != other.end(); ++it) {
                 std::allocator_traits<Allocator>::construct(allocator_, data_ + i, std::move(*it));//copy
                 ++i;
+            }
+        }
+
+        vector(std::initializer_list<T> init, const Allocator &alloc = Allocator()) : allocator_(alloc),
+                                                                                      capacity_(init.size()),
+                                                                                      size_(init.size()),
+                                                                                      data_(allocator_.allocate(capacity_)) {
+            size_type i = 0;
+            for (auto it = init.begin(); it != init.end(); it++) {
+                allocator_.construct(data_ + i, *it);
+                i++;
             }
         }
 
@@ -291,6 +305,7 @@ namespace pretty_vector {
             }
             size_ = 0;
         }
+
         bool requires_reallocation(size_type new_size) { return new_size >= capacity_; }
 
         void reallocation(size_type new_size) {
@@ -301,26 +316,15 @@ namespace pretty_vector {
             }
         }
 
-        template <typename ...Args>
-        void emplace_back(Args&& ... args) {
+        template<typename ...Args>
+        void emplace_back(Args &&... args) {
             this->reallocation(size_ + 1);
             std::allocator_traits<Allocator>::construct(allocator_, data_ + size_, std::forward<Args>(args)...);
             ++size_;
         }
 
-        void shift_right(size_type n, iterator from, iterator after_last) { // [begin, last)
-            if (from >= after_last || n == 0) {
-                return;
-            }
-
-            for (iterator it = after_last - 1;true; --it) {
-                allocator_.construct(&*(it+n), std::move(*it));
-                if (it == from){ break;}
-            }
-        }
-
-        template <typename ...Args>
-        iterator emplace(const_iterator position, Args&& ... args) {
+        template<typename ...Args>
+        iterator emplace(const_iterator position, Args &&... args) {
             difference_type index_position = std::distance(this->cbegin(), position);
             reallocation(size_ + 1);
 
@@ -328,37 +332,34 @@ namespace pretty_vector {
                 shift_right(1, iterator(data_ + index_position), end());
             }
 
-            std::allocator_traits<Allocator>::construct(allocator_, data_ + index_position, std::forward<Args>(args)...);
+            std::allocator_traits<Allocator>::construct(allocator_, data_ + index_position,
+                                                        std::forward<Args>(args)...);
             ++size_;
 
             return iterator(data_ + index_position);
         }
 
-        iterator insert(const_iterator position, const T& x) {
-            return this->emplace(position, std::forward<const T&>(x));
+        iterator insert(const_iterator position, const T &x) {
+            return this->emplace(position, std::forward<const T &>(x));
         }
 
-        iterator insert( const_iterator pos, size_type count, const T& value ) {
-            iterator titer = pos;
+        iterator insert(const_iterator pos, size_type count, const T &value) {
+            /*iterator titer = pos;
             for (size_type i = 0; i < count; ++i) {
                 insert(titer, value);
                 titer++;
-            }
+            }*/
         }
 
         template<class InputIt>
         iterator insert(iterator pos, InputIt first, InputIt last) {
-            difference_type index_position = pos.current_index();
-            difference_type n = std::distance(first, last);
-            reallocation(size_ + n);
-            iterator valid_position = iterator(data_ + index_position);
-            shift_right(n, valid_position, this->end());
-            for (auto iter_init = first; iter_init != last; ++iter_init, ++valid_position) {
-                std::allocator_traits<Allocator>::construct(allocator_, valid_position.iterator_data(), *iter_init);
+            size_type size = last - first;
+            shift_right(size, pos, pos + size);
+            int i = pos.current_index();
+            for (auto it = first; it != last; it++) {
+                std::allocator_traits<Allocator>::construct(allocator_, data_ + i, *it);
+                ++i;
             }
-            size_ += n;
-
-            return valid_position;
         }
 
         iterator erase(iterator pos) {
@@ -400,18 +401,6 @@ namespace pretty_vector {
             size_ = capacity_;
         };
 
-        void shift_right_from_position(size_type pos) {
-            for (size_type i = size_; i > pos; --i) {
-                data_[i] = data_[i - 1];
-            }
-        }
-
-        void shift_right_from_iterator(const iterator pos) {
-            for (iterator titer = end(); titer != pos; --titer) {
-                *titer = *(titer - 1);
-            }
-        }
-
         void move_data_to_pointer(pointer data) {
             for (size_type i = 0; i < size_; i++) {
                 allocator_.construct(data + i, std::move(data_[i]));
@@ -419,26 +408,36 @@ namespace pretty_vector {
             }
         }
 
-        template <typename TypeIteratorBase,  typename TypeIteratorCon, typename type>
-        inline void create_obj(TypeIteratorBase base, const TypeIteratorCon& begin, const TypeIteratorCon& end) {
+        template<typename TypeIteratorBase, typename TypeIteratorCon, typename type>
+        inline void create_obj(TypeIteratorBase base, const TypeIteratorCon &begin, const TypeIteratorCon &end) {
             for (auto iter_init = begin; iter_init != end; ++iter_init, ++base) {
                 std::allocator_traits<Allocator>::construct(allocator_, base.data(), *iter_init);
             }
         }
 
-        template <typename TypeIterator>
-        void create_obj(TypeIterator base, size_type n, const T& value)
-        {
+        template<typename TypeIterator>
+        void create_obj(TypeIterator base, size_type n, const T &value) {
             for (size_type i = 0; i < n; ++i, ++base) {
                 std::allocator_traits<Allocator>::construct(allocator_, base.data(), value);
             }
         }
 
-        template <typename TypeIterator>
+        template<typename TypeIterator>
         void create_obj(TypeIterator base, size_type n) {
             for (size_type i = 0; i < n; ++i) {
                 std::allocator_traits<Allocator>::construct(allocator_, base.data());
                 ++base;
+            }
+        }
+
+        void shift_right(size_type n, iterator from, iterator after_last) { // [begin, last)
+            if (from >= after_last || n == 0) {
+                return;
+            }
+
+            for (iterator it = after_last - 1; true; --it) {
+                allocator_.construct(&*(it + n), std::move(*it));
+                if (it == from) { break; }
             }
         }
 
