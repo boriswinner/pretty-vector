@@ -201,10 +201,10 @@ TEST_CASE ("Resize") {
         test_vector.push_back(5);
         test_vector.push_back(10);
         test_vector.resize(5,1488);
-        for (auto it = test_vector.begin(); it != test_vector.end(); ++it){
-            std::cout << *it << ' ';
-        }
-        REQUIRE(test_vector.size() == 5);
+        const int cint = 228;
+        test_vector.resize(6,cint);
+        REQUIRE(test_vector.size() == 6);
         REQUIRE(test_vector[4] == 1488);
+        REQUIRE(test_vector[5] == 228);
     }
 }

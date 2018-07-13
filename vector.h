@@ -7,6 +7,7 @@ namespace pretty_vector {
     class vector {
     public:
         using data_type = T;
+        using value_type = T;
         using difference_type = std::ptrdiff_t;
         using size_type = unsigned int;
         using reference = T &;
@@ -403,7 +404,20 @@ namespace pretty_vector {
             }
         }
 
-        void resize( size_type count, T value = T() ){
+        void resize( size_type count ){
+            if (count <= size_){
+                for (int i = 0; i < abs(count-size_); ++i){
+                    pop_back();
+                }
+            } else{
+                for (auto i = 0; i < abs(count-size_); ++i){
+                    std::allocator_traits<Allocator>::construct(allocator_, data_ + size_ + i, T());
+                }
+                size_ += abs(count-size_);
+            }
+        }
+
+        void resize( size_type count, const value_type& value){
             if (count <= size_){
                 for (int i = 0; i < abs(count-size_); ++i){
                     pop_back();
