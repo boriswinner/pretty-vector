@@ -182,7 +182,8 @@ namespace pretty_vector {
         vector(std::initializer_list<T> init, const Allocator &alloc = Allocator()) : allocator_(alloc),
                                                                                       capacity_(init.size()),
                                                                                       size_(init.size()),
-                                                                                      data_(allocator_.allocate(capacity_)) {
+                                                                                      data_(allocator_.allocate(
+                                                                                              capacity_)) {
             size_type i = 0;
             for (auto it = init.begin(); it != init.end(); it++) {
                 allocator_.construct(data_ + i, *it);
@@ -190,6 +191,11 @@ namespace pretty_vector {
             }
         }
 
+        ~vector(){
+            for (size_type i = 0; i < size_; i++) {
+                std::allocator_traits<Allocator>::destroy(allocator_, data_ + i);
+            }
+        }
         reference at(size_type pos) {
             if (pos >= 0 && pos < size_) {
                 return data_[pos];
@@ -340,17 +346,17 @@ namespace pretty_vector {
             return iterator(data_, index_position);
         }
 
-        iterator insert(const_iterator pos, const T &value ) {
+        iterator insert(const_iterator pos, const T &value) {
             return this->emplace(pos, std::forward<const T &>(value));
         }
 
-        iterator insert( const_iterator pos, T&& value ){
+        iterator insert(const_iterator pos, T &&value) {
             return this->emplace(pos, std::forward<const T &>(value));
         }
 
         iterator insert(const_iterator pos, size_type count, const T &value) {
             shift_right(count, pos, end());
-            for (auto i = 0; i < count; ++i){
+            for (auto i = 0; i < count; ++i) {
                 std::allocator_traits<Allocator>::construct(allocator_, data_ + i, value);
             }
             size_ += count;
@@ -368,7 +374,7 @@ namespace pretty_vector {
             size_ += size;
         }
 
-        iterator insert( const_iterator pos, std::initializer_list<T> ilist ){
+        iterator insert(const_iterator pos, std::initializer_list<T> ilist) {
             size_type size = ilist.end() - ilist.begin();
             shift_right(size, pos, end());
             int i = pos.current_index();
@@ -404,30 +410,37 @@ namespace pretty_vector {
             }
         }
 
-        void resize( size_type count ){
-            if (count <= size_){
-                for (int i = 0; i < abs(count-size_); ++i){
+        void resize(size_type count) {
+            if (count <= size_) {
+                for (int i = 0; i < abs(count - size_); ++i) {
                     pop_back();
                 }
-            } else{
-                for (auto i = 0; i < abs(count-size_); ++i){
+            } else {
+                for (auto i = 0; i < abs(count - size_); ++i) {
                     std::allocator_traits<Allocator>::construct(allocator_, data_ + size_ + i, T());
                 }
-                size_ += abs(count-size_);
+                size_ += abs(count - size_);
             }
         }
 
-        void resize( size_type count, const value_type& value){
-            if (count <= size_){
-                for (int i = 0; i < abs(count-size_); ++i){
+        void resize(size_type count, const value_type &value) {
+            if (count <= size_) {
+                for (int i = 0; i < abs(count - size_); ++i) {
                     pop_back();
                 }
-            } else{
-                for (auto i = 0; i < abs(count-size_); ++i){
+            } else {
+                for (auto i = 0; i < abs(count - size_); ++i) {
                     std::allocator_traits<Allocator>::construct(allocator_, data_ + size_ + i, value);
                 }
-                size_ += abs(count-size_);
+                size_ += abs(count - size_);
             }
+        }
+
+        void swap(vector &other) {
+            std::swap(allocator_, other.allocator_);
+            std::swap(size_, other.size_);
+            std::swap(capacity_, other.capacity_);
+            std::swap(data_, other.data_);
         }
 
         void debug_cout_data() {

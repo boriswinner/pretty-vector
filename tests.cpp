@@ -207,4 +207,32 @@ TEST_CASE ("Resize") {
         REQUIRE(test_vector[4] == 1488);
         REQUIRE(test_vector[5] == 228);
     }
+
+    SECTION("swap"){
+        pretty_vector::vector<int> test_vector1;
+        test_vector1.push_back(5);
+        test_vector1.push_back(10);
+
+        pretty_vector::vector<int> test_vector2;
+        test_vector2.push_back(45);
+        test_vector2.push_back(23);
+
+        test_vector1.swap(test_vector2);
+        REQUIRE(test_vector1[0] == 45);
+        REQUIRE(test_vector1[1] == 23);
+        REQUIRE(test_vector2[0] == 5);
+        REQUIRE(test_vector2[1] == 10);
+
+        test_vector1.swap(test_vector2);
+        REQUIRE(test_vector1[0] == 5);
+        REQUIRE(test_vector1[1] == 10);
+    }
+
+    SECTION("front, back"){
+        pretty_vector::vector<int> test_vector1;
+        test_vector1.push_back(5);
+        test_vector1.push_back(10);
+        REQUIRE(test_vector1.front() == 5);
+        REQUIRE(test_vector1.back() == 10);
+    }
 }
