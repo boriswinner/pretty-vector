@@ -244,4 +244,35 @@ TEST_CASE ("Resize") {
             i++;
         }
     }
+
+    SECTION("shrink_to_fit")
+    {
+        pretty_vector::vector<int> test_vector({1,2,3,4,5,6,7,8,9,10,11});
+        test_vector.reserve(500);
+        REQUIRE(test_vector.size() == 11);
+        REQUIRE(test_vector.capacity() == 500);
+        test_vector.push_back(89);
+
+        test_vector.shrink_to_fit();
+        REQUIRE(test_vector.size() == 12);
+        REQUIRE(test_vector.capacity() == 12);
+    }
+
+    SECTION("erase(pos)")
+    {
+        pretty_vector::vector<char > test_vector;
+        std::vector<char > std_vector;
+
+        test_vector = {'k', 'l', 'b', 'r', 'm', 'n', 'j', 'v', 'l'};
+        std_vector = {'k', 'l', 'b', 'r', 'm', 'n', 'j', 'v', 'l'};
+
+        auto itA = test_vector.begin() + 2;//b
+        auto itB = std_vector.begin() + 2;//b
+
+        auto endA = test_vector.erase(itA);
+
+        auto endB = std_vector.erase(itB);
+
+        REQUIRE(is_same(test_vector, std_vector));
+    }
 }

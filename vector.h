@@ -523,15 +523,19 @@ namespace pretty_vector {
         }
 
         iterator erase(iterator pos) {
-            //this may be not working
             allocator_.destroy(data_ + pos.current_index());
+            shift_left(1,pos+1,end());
+            size_--;
             return ++pos;
         }
 
         iterator erase(iterator first, iterator last) {
             for (iterator t = first; t != last; ++t) {
-                erase(t);
+                allocator_.destroy(data_ + t.current_index());
             }
+            shift_left(static_cast<size_type>(last - first), last + 1, end());
+            size_ -= static_cast<size_type>(last - first);
+            return ++last;
         }
 
         void push_back(const T &value) {
@@ -580,6 +584,69 @@ namespace pretty_vector {
             std::swap(data_, other.data_);
         }
 
+        /*template<class T, class Alloc>
+        bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        {
+            if (lhs.size_ != rhs.size_) {
+                return false;
+            }
+
+            auto itL = lhs.begin();
+            auto itR = rhs.begin();
+
+            for (; itL != lhs.end(); itL++, itR++) {
+                if (*itL != *itR) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        template<class T, class Alloc>
+        bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        {
+            auto size = std::min(lhs.size(), rhs.size());
+
+            for (typename vector<T, Alloc>::size_type i = 0; i < size; i++) {
+                if (lhs[i] < rhs[i]) {
+                    return true;
+                }
+            }
+            return lhs.size() < rhs.size();
+        }
+
+        template<class T, class Alloc>
+        bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        {
+            return !(lhs == rhs);
+        }
+
+        template<class T, class Alloc>
+        bool operator> (const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        {
+            return rhs < lhs;
+        }
+
+        template<class T, class Alloc>
+        bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        {
+            auto size = std::min(lhs.size(), rhs.size());
+
+            for (typename vector<T, Alloc>::size_type i = 0; i < size; i++) {
+                if (lhs[i] < rhs[i]) {
+                    return true;
+                }
+            }
+            return lhs.size() == rhs.size();
+        }
+
+        template<class T, class Alloc>
+        bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        {
+            return rhs <= lhs;
+        }        */
+
 
     private:
         size_type capacity_, size_;
@@ -608,6 +675,16 @@ namespace pretty_vector {
             for (iterator it = after_last - 1; true; --it) {
                 allocator_.construct(&*(it + n), std::move(*it));
                 if (it == from) { break; }
+            }
+        }
+
+        void shift_left(size_type n, iterator from, iterator after_last) { // [begin, last)
+            if (from >= after_last || n == 0) {
+                return;
+            }
+
+            for (iterator it = from; it < after_last ; ++it) {
+                allocator_.construct(&*(it - n), std::move(*it));
             }
         }
 
