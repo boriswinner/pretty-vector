@@ -4,7 +4,7 @@
 namespace pretty_vector {
 
 
-    template<class T, class Allocator = pretty_allocator::allocator<T>>
+    template<class T, class Allocator = std::allocator<T>>
     class vector {
     public:
         using data_type = T;
@@ -549,6 +549,34 @@ namespace pretty_vector {
                 size_--;
                 std::allocator_traits<Allocator>::destroy(allocator_, data_ + size_);
             }
+        }
+
+        void assign( size_type count, const T& value ){
+            for (size_type i = 0; i < size_; i++) {
+                allocator_.destroy(data_ + i);
+            }
+            reallocation(count);
+            fill_with_value(value);
+            size_ = count;
+        }
+
+        template< class InputIt >
+        void assign( InputIt first, InputIt last ){
+            for (size_type i = 0; i < size_; i++) {
+                allocator_.destroy(data_ + i);
+            }
+            auto count = last - first;
+            reallocation(count);
+            size_ = count;
+            size_type i = 0;
+            for (auto it = first; it != last; it++) {
+                allocator_.construct(data_ + i, *it);
+                i++;
+            }
+        }
+
+        void assign( std::initializer_list<T> ilist ){
+            assign(ilist.begin(), ilist.end());
         }
 
         void resize(size_type count) {

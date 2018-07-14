@@ -68,6 +68,15 @@ public:
     int* large_field_b;
 };
 
+class NoCopyConstructor{
+public:
+    NoCopyConstructor(): a_(1), b_('b'){}
+    NoCopyConstructor(const NoCopyConstructor&) = delete;
+    NoCopyConstructor(NoCopyConstructor&&) = default;
+    int a_;
+    char b_;
+};
+
 TEST_CASE("Constructors") {
     SECTION("vector(size_type n)") {
         pretty_vector::vector<double> test_vector(500);
@@ -157,6 +166,13 @@ TEST_CASE("Inserts and emplaces") {
         std::vector<int> std_myvector{10, 20, 30, 100, 200};
         REQUIRE(is_same(myvector, std_myvector));
     }
+
+    SECTION("Emplace without copy constructor"){
+        pretty_vector::vector<NoCopyConstructor> myvector(0);
+        myvector.emplace_back(NoCopyConstructor());
+        myvector.emplace(myvector.begin(),NoCopyConstructor());
+        REQUIRE(myvector.size() == 2);
+    }
 }
 
 TEST_CASE ("push and pop back"){
@@ -204,6 +220,8 @@ TEST_CASE ("Resize") {
         const int cint = 228;
         test_vector.resize(6,cint);
         REQUIRE(test_vector.size() == 6);
+        REQUIRE(test_vector[0] == 5);
+        REQUIRE(test_vector[1] == 10);
         REQUIRE(test_vector[4] == 1488);
         REQUIRE(test_vector[5] == 228);
     }
@@ -228,6 +246,15 @@ TEST_CASE ("Resize") {
         REQUIRE(test_vector1[1] == 10);
     }
 
+    SECTION("swap with copy constructor"){
+        pretty_vector::vector<NoCopyConstructor> myvector(0);
+        myvector.emplace_back(NoCopyConstructor());
+        pretty_vector::vector<NoCopyConstructor> myvector2(0);
+        myvector2.emplace_back(NoCopyConstructor());
+        myvector.swap(myvector2);
+        myvector2.swap(myvector);
+    }
+
     SECTION("front, back"){
         pretty_vector::vector<int> test_vector1;
         test_vector1.push_back(5);
@@ -242,11 +269,11 @@ TEST_CASE ("Resize") {
         test_vector.reserve(500);
         REQUIRE(test_vector.size() == 11);
         REQUIRE(test_vector.capacity() == 500);
-        test_vector.push_back(89);
+//        test_vector.push_back(89);
 
         test_vector.shrink_to_fit();
-        REQUIRE(test_vector.size() == 12);
-        REQUIRE(test_vector.capacity() == 12);
+        REQUIRE(test_vector.size() == 11);
+        REQUIRE(test_vector.capacity() == 11);
     }
 
     SECTION("erase(pos)")
@@ -275,6 +302,35 @@ TEST_CASE("reverse iterator"){
         for (auto it = test_vector1.rbegin(); it != test_vector1.rend(); ++it){
             REQUIRE(*it == i);
             i++;
+        }
+    }
+}
+
+TEST_CASE("assign"){
+    SECTION("assign"){
+        pretty_vector::vector<int> test_vector1({7,6,5,4,3,2,1});
+        test_vector1.assign(pretty_vector::vector<int>::size_type(7),5);
+        std::cout << '\n';
+    }
+
+    SECTION("assign with iterator"){
+        pretty_vector::vector<int> test_vector1({7,6,5,4,3,2,1});
+        pretty_vector::vector<int> test_vector2({1,2,3,4,5,6,7});
+        test_vector1.assign(test_vector2.begin(),test_vector2.end());
+        int i = 7;
+        for (auto it = test_vector1.rbegin(); it != test_vector1.rend(); ++it){
+            REQUIRE(*it == i);
+            i--;
+        }
+    }
+
+    SECTION("assign with brace-enclosed"){
+        pretty_vector::vector<int> test_vector1({7,6,5,4,3,2,1});
+        test_vector1.assign({1,2,3,4,5,6,7});
+        int i = 7;
+        for (auto it = test_vector1.rbegin(); it != test_vector1.rend(); ++it){
+            REQUIRE(*it == i);
+            i--;
         }
     }
 }
