@@ -425,7 +425,7 @@ namespace pretty_vector {
                 auto new_data = tallocator.allocate(size);
                 move_data_to_pointer(new_data);
                 if (capacity() > 0){
-                    allocator_.deallocate(data_, capacity_); //maybe I should do here like Setyozha - std::alllocator_traits
+                    allocator_.deallocate(data_, capacity_);
                 }
                 capacity_ = size;
                 data_ = new_data;
@@ -578,12 +578,7 @@ namespace pretty_vector {
             std::swap(capacity_, other.capacity_);
             std::swap(data_, other.data_);
         }
-
-        void debug_cout_data() {
-            for (int i = 0; i < size_; ++i) {
-                std::cout << data_[i];
-            }
-        }
+        
 
     private:
         size_type capacity_, size_;
@@ -592,7 +587,6 @@ namespace pretty_vector {
 
         void fill_with_value(const T &value) {
             for (iterator it = begin(); it != end(); ++it) {
-                //std::cout << *it;
                 *it = value;
             }
             size_ = capacity_;
@@ -602,28 +596,6 @@ namespace pretty_vector {
             for (size_type i = 0; i < size_; i++) {
                 allocator_.construct(data + i, std::move(data_[i]));
                 allocator_.destroy(data_ + i);
-            }
-        }
-
-        template<typename TypeIteratorBase, typename TypeIteratorCon, typename type>
-        inline void create_obj(TypeIteratorBase base, const TypeIteratorCon &begin, const TypeIteratorCon &end) {
-            for (auto iter_init = begin; iter_init != end; ++iter_init, ++base) {
-                std::allocator_traits<Allocator>::construct(allocator_, base.data(), *iter_init);
-            }
-        }
-
-        template<typename TypeIterator>
-        void create_obj(TypeIterator base, size_type n, const T &value) {
-            for (size_type i = 0; i < n; ++i, ++base) {
-                std::allocator_traits<Allocator>::construct(allocator_, base.data(), value);
-            }
-        }
-
-        template<typename TypeIterator>
-        void create_obj(TypeIterator base, size_type n) {
-            for (size_type i = 0; i < n; ++i) {
-                std::allocator_traits<Allocator>::construct(allocator_, base.data());
-                ++base;
             }
         }
 
