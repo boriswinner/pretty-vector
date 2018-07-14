@@ -1,9 +1,10 @@
 #include <iostream>
+#include "allocator.h"
 
 namespace pretty_vector {
 
 
-    template<class T, class Allocator = std::allocator<T>>
+    template<class T, class Allocator = pretty_allocator::allocator<T>>
     class vector {
     public:
         using data_type = T;
@@ -578,7 +579,7 @@ namespace pretty_vector {
             std::swap(capacity_, other.capacity_);
             std::swap(data_, other.data_);
         }
-        
+
 
     private:
         size_type capacity_, size_;
