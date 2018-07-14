@@ -81,7 +81,7 @@ class NoCopyConstructor_{
 public:
     NoCopyConstructor_(): a_(1), b_('b'){}
     NoCopyConstructor_(const NoCopyConstructor_&) = default;
-    NoCopyConstructor_(NoCopyConstructor_&&) = delete;
+    NoCopyConstructor_(NoCopyConstructor_&&) = default;
     int a_;
     char b_;
 };
@@ -95,7 +95,7 @@ TEST_CASE("Constructors") {
     }
 
     SECTION("vector(size_type 0)") {
-        pretty_vector::vector<bool> test_vector(10);
+        pretty_vector::vector<bool> test_vector(0);
         REQUIRE(test_vector.capacity() == 0);
         REQUIRE(test_vector.size() == 0);
         REQUIRE(test_vector.empty());
