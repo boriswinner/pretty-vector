@@ -28,6 +28,8 @@ namespace pretty_vector {
 
             MyIterator(pointer data, size_type index) : data_(data), index_(index) {}
 
+            MyIterator(){};
+
             template<typename T2>
             MyIterator &operator=(const MyIterator<T2> &other) {
                 data_ = other.data_;
@@ -135,6 +137,113 @@ namespace pretty_vector {
 
         typedef MyIterator<data_type> iterator;
         typedef MyIterator<const data_type> const_iterator;
+
+        template<typename TypeV>
+        class ReverseIterator :
+                public std::iterator<std::random_access_iterator_tag, TypeV> {
+        public:
+            template<typename T2>
+            ReverseIterator(const MyIterator<T2> &other) :  current(other){}
+
+            size_type current_index() {
+                return current.index_;
+            }
+
+            pointer iterator_data() {
+                return current.data_;
+            }
+
+            ReverseIterator operator++(int) {
+                return MyIterator<data_type >(current.data_, current.index_--);
+            }
+
+            ReverseIterator operator--(int) {
+                return MyIterator<data_type>(current.data_, current.index_++);
+            }
+
+            ReverseIterator &operator++() {
+                --current.index_;
+                return *this;
+            }
+
+            ReverseIterator &operator--() {
+                ++current.index_;
+                return *this;
+            }
+
+            ReverseIterator operator+(const difference_type &n) const {
+                return MyIterator<data_type>(current.data_, (current.index_ + n));
+            }
+
+            ReverseIterator &operator+=(const difference_type &n) {
+                current.index_ += n;
+                return *this;
+            }
+
+            ReverseIterator operator-(const difference_type &n) const {
+                return MyIterator<data_type>(current.data_, (current.index_ - n));
+            }
+
+            ReverseIterator &operator-=(const difference_type &n) {
+                current.index_ -= n;
+                return *this;
+            }
+
+            reference operator[](const difference_type &n) const {
+                return (current.data_)[current.index_ + n];
+            }
+
+            reference operator*() const {
+                return current.data_[current.index_];
+            }
+
+            pointer operator->() const {
+                return &current.data_[current.index_];
+            }
+
+            pointer operator&() const {
+                return &current.data_[current.index_];
+            }
+
+            bool operator==(const ReverseIterator &other) const {
+                return current.index_ == other.current.index_;
+            }
+
+            bool operator!=(const ReverseIterator &other) const {
+                return current.index_ != other.current.index_;
+            }
+
+            bool operator<(const ReverseIterator &other) const {
+                return current.index_ < other.current.index_;
+            }
+
+            bool operator>(const ReverseIterator &other) const {
+                return current.index_ > other.current.index_;
+            }
+
+            bool operator>=(const ReverseIterator &other) const {
+                return current.index_ >= other.current.index_;
+            }
+
+            bool operator<=(const ReverseIterator &other) const {
+                return current.index_ <= other.current.index_;
+            }
+
+            difference_type operator+(const ReverseIterator &other) const {
+                return current.index_ + other.current.index_;
+            }
+
+            difference_type operator-(const ReverseIterator &other) const {
+                return current.index_ - other.current.index_;
+            }
+
+        public:
+            MyIterator<data_type > current;
+        };
+
+        typedef ReverseIterator<data_type> reverse_iterator;
+        typedef ReverseIterator<const data_type> const_reverse_iterator;
+
     public:
         explicit vector(const Allocator &alloc = Allocator()) : allocator_(alloc), capacity_(0), size_(0) {};
 
@@ -256,6 +365,31 @@ namespace pretty_vector {
             return const_iterator(data_);
         }
 
+        reverse_iterator rbegin(){
+            return reverse_iterator(end()-1);
+        }
+
+        const_reverse_iterator rbegin() const{
+            return const_reverse_iterator(end()-1);
+
+        }
+
+        const_reverse_iterator crbegin() const{
+            return const_reverse_iterator(end()-1);
+        }
+
+        reverse_iterator rend(){
+            return reverse_iterator(begin()-1);
+        }
+
+        const_reverse_iterator rend() const{
+            return const_reverse_iterator(begin()-1);
+        }
+
+        const_reverse_iterator crend() const{
+            return const_reverse_iterator(begin()-1);
+        }
+
         iterator end() {
             return iterator(data_, size_);
         }
@@ -290,7 +424,9 @@ namespace pretty_vector {
                 Allocator tallocator;
                 auto new_data = tallocator.allocate(size);
                 move_data_to_pointer(new_data);
-                allocator_.deallocate(data_, capacity_); //maybe I should do here like Setyozha - std::alllocator_traits
+                if (capacity() > 0){
+                    allocator_.deallocate(data_, capacity_); //maybe I should do here like Setyozha - std::alllocator_traits
+                }
                 capacity_ = size;
                 data_ = new_data;
                 allocator_ = tallocator;

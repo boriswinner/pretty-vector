@@ -235,4 +235,13 @@ TEST_CASE ("Resize") {
         REQUIRE(test_vector1.front() == 5);
         REQUIRE(test_vector1.back() == 10);
     }
+
+    SECTION("reverse iterator"){
+        pretty_vector::vector<int> test_vector1({7,6,5,4,3,2,1});
+        int i = 1;
+        for (auto it = test_vector1.rbegin(); it != test_vector1.rend(); ++it){
+            REQUIRE(*it == i);
+            i++;
+        }
+    }
 }
