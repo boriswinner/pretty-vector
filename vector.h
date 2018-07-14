@@ -1,5 +1,6 @@
 #include <iostream>
 #include "allocator.h"
+#include <cmath>
 
 namespace pretty_vector {
 
@@ -455,7 +456,7 @@ namespace pretty_vector {
         void reallocation(size_type new_size) {
             if (this->requires_reallocation(new_size)) {
                 size_type needed_capacity = capacity_ + new_size - size_;
-                size_type new_capacity = static_cast<size_type>(std::ceil(needed_capacity * resize_coefficient));
+                size_type new_capacity = static_cast<size_type>(ceil(needed_capacity * resize_coefficient));
                 this->reserve(new_capacity);
             }
         }
