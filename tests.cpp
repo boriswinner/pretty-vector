@@ -340,3 +340,56 @@ TEST_CASE("assign"){
         }
     }
 }
+
+TEST_CASE("operators"){
+    SECTION("=="){
+        pretty_vector::vector<char> a({'a','b','c'});
+        pretty_vector::vector<char> b({'a','b','c'});
+        REQUIRE(a == b);
+    }
+
+    SECTION("<"){
+        pretty_vector::vector<char> a({'a','a','c'});
+        pretty_vector::vector<char> b({'a','b','c'});
+        REQUIRE(a < b);
+    }
+
+    SECTION("<2"){
+        pretty_vector::vector<char> a({'a','a','d'});
+        pretty_vector::vector<char> b({'a','b','c'});
+        REQUIRE(a < b);
+    }
+
+    SECTION(">="){
+        pretty_vector::vector<char> a({'a','a','d'});
+        pretty_vector::vector<char> b({'a','b','c'});
+        REQUIRE_FALSE(a >= b);
+        pretty_vector::vector<char> c({'a','d','a'});
+        pretty_vector::vector<char> d({'a','b','z'});
+        REQUIRE(c >= d);
+        pretty_vector::vector<char> e({'a','b','c'});
+        pretty_vector::vector<char> f({'a','b','c'});
+        REQUIRE(e >= f);
+    }
+
+    SECTION(">"){
+        pretty_vector::vector<char> a({'a','a','d'});
+        pretty_vector::vector<char> b({'a','b','c'});
+        REQUIRE_FALSE(a > b);
+        pretty_vector::vector<char> c({'a','d','a'});
+        pretty_vector::vector<char> d({'a','d','a'});
+        REQUIRE_FALSE(c > d);
+        pretty_vector::vector<char> e({'a','b','c'});
+        pretty_vector::vector<char> f({'a','a','z'});
+        REQUIRE(e > f);
+    }
+
+    SECTION("<="){
+        pretty_vector::vector<char> a({'a','b','c'});
+        pretty_vector::vector<char> b({'a','b','c'});
+        REQUIRE(a <= b);
+        pretty_vector::vector<char> c({'a','a','a'});
+        pretty_vector::vector<char> d({'a','d','a'});
+        REQUIRE(c <= d);
+    }
+}

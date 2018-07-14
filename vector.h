@@ -633,14 +633,7 @@ namespace pretty_vector {
 
         friend bool operator<(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
-            auto size = std::min(lhs.size(), rhs.size());
-
-            for (typename vector<T, Allocator>::size_type i = 0; i < size; i++) {
-                if (lhs[i] < rhs[i]) {
-                    return true;
-                }
-            }
-            return lhs.size() < rhs.size();
+            return std::lexicographical_compare(lhs.begin(),lhs.end(),rhs.begin(),rhs.end());
         }
 
         friend bool operator!=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
@@ -650,25 +643,17 @@ namespace pretty_vector {
 
         friend bool operator> (const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
-            return rhs < lhs;
+            return (lhs >= rhs) && (lhs != rhs);
         }
 
         friend bool operator<=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
-//            auto size = std::min(lhs.size(), rhs.size());
-//
-//            bool flag = true;
-//            for (typename vector<T, Allocator>::size_type i = 0; i < size; i++) {
-//                if (lhs[i] < rhs[i]) {
-//                    return true;
-//                }
-//            }
-//            return lhs.size() == rhs.size();
+            return !(lhs > rhs);
         }
 
         friend bool operator>=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
-            return rhs <= lhs;
+            return !(lhs < rhs);
         }
 
 
