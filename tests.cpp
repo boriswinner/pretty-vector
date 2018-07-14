@@ -77,6 +77,15 @@ public:
     char b_;
 };
 
+class NoCopyConstructor_{
+public:
+    NoCopyConstructor_(): a_(1), b_('b'){}
+    NoCopyConstructor_(const NoCopyConstructor_&) = default;
+    NoCopyConstructor_(NoCopyConstructor_&&) = delete;
+    int a_;
+    char b_;
+};
+
 TEST_CASE("Constructors") {
     SECTION("vector(size_type n)") {
         pretty_vector::vector<double> test_vector(500);
@@ -86,7 +95,7 @@ TEST_CASE("Constructors") {
     }
 
     SECTION("vector(size_type 0)") {
-        pretty_vector::vector<bool> test_vector(0);
+        pretty_vector::vector<bool> test_vector(10);
         REQUIRE(test_vector.capacity() == 0);
         REQUIRE(test_vector.size() == 0);
         REQUIRE(test_vector.empty());
@@ -149,6 +158,9 @@ TEST_CASE("Inserts and emplaces") {
     }
 
     SECTION("Emplace") {
+        NoCopyConstructor_ foo;
+        pretty_vector::vector<NoCopyConstructor_> vec_;
+        vec_.emplace_back(foo);
         pretty_vector::vector<int> myvector = {10, 20, 30};
 
         auto it = myvector.emplace(myvector.begin() + 1, 100);
@@ -167,12 +179,6 @@ TEST_CASE("Inserts and emplaces") {
         REQUIRE(is_same(myvector, std_myvector));
     }
 
-    SECTION("Emplace without copy constructor"){
-        pretty_vector::vector<NoCopyConstructor> myvector(0);
-        myvector.emplace_back(NoCopyConstructor());
-        myvector.emplace(myvector.begin(),NoCopyConstructor());
-        REQUIRE(myvector.size() == 2);
-    }
 }
 
 TEST_CASE ("push and pop back"){
