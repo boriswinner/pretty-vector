@@ -584,8 +584,7 @@ namespace pretty_vector {
             std::swap(data_, other.data_);
         }
 
-        /*template<class T, class Alloc>
-        bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        friend bool operator==(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
             if (lhs.size_ != rhs.size_) {
                 return false;
@@ -603,12 +602,11 @@ namespace pretty_vector {
             return true;
         }
 
-        template<class T, class Alloc>
-        bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        friend bool operator<(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
             auto size = std::min(lhs.size(), rhs.size());
 
-            for (typename vector<T, Alloc>::size_type i = 0; i < size; i++) {
+            for (typename vector<T, Allocator>::size_type i = 0; i < size; i++) {
                 if (lhs[i] < rhs[i]) {
                     return true;
                 }
@@ -616,24 +614,21 @@ namespace pretty_vector {
             return lhs.size() < rhs.size();
         }
 
-        template<class T, class Alloc>
-        bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        friend bool operator!=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
             return !(lhs == rhs);
         }
 
-        template<class T, class Alloc>
-        bool operator> (const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        friend bool operator> (const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
             return rhs < lhs;
         }
 
-        template<class T, class Alloc>
-        bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        friend bool operator<=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
             auto size = std::min(lhs.size(), rhs.size());
 
-            for (typename vector<T, Alloc>::size_type i = 0; i < size; i++) {
+            for (typename vector<T, Allocator>::size_type i = 0; i < size; i++) {
                 if (lhs[i] < rhs[i]) {
                     return true;
                 }
@@ -641,11 +636,10 @@ namespace pretty_vector {
             return lhs.size() == rhs.size();
         }
 
-        template<class T, class Alloc>
-        bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs)
+        friend bool operator>=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
         {
             return rhs <= lhs;
-        }        */
+        }
 
 
     private:

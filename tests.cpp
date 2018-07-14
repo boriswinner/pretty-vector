@@ -236,15 +236,6 @@ TEST_CASE ("Resize") {
         REQUIRE(test_vector1.back() == 10);
     }
 
-    SECTION("reverse iterator"){
-        pretty_vector::vector<int> test_vector1({7,6,5,4,3,2,1});
-        int i = 1;
-        for (auto it = test_vector1.rbegin(); it != test_vector1.rend(); ++it){
-            REQUIRE(*it == i);
-            i++;
-        }
-    }
-
     SECTION("shrink_to_fit")
     {
         pretty_vector::vector<int> test_vector({1,2,3,4,5,6,7,8,9,10,11});
@@ -274,5 +265,16 @@ TEST_CASE ("Resize") {
         auto endB = std_vector.erase(itB);
 
         REQUIRE(is_same(test_vector, std_vector));
+    }
+}
+
+TEST_CASE("reverse iterator"){
+    SECTION("reverse iterator"){
+        pretty_vector::vector<int> test_vector1({7,6,5,4,3,2,1});
+        int i = 1;
+        for (auto it = test_vector1.rbegin(); it != test_vector1.rend(); ++it){
+            REQUIRE(*it == i);
+            i++;
+        }
     }
 }
